@@ -3,6 +3,6 @@ module.exports = {
         host: "localhost",
         user: "root",
         password: "",
-        db: "bolsa_trabajo"
+        db: "biblioteca"
     }
 };
