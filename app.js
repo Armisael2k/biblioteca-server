@@ -96,7 +96,7 @@ app.post('/api/registrar-prestamo-libro', async (req, res) => {
             (err, result) => {
                 if (err) {
                     if (err.errno === 1062) return res.send({ success: 0, message: 'El libro ya se encuentra prestado' });
-                    console.log(err.sqlMessage);
+                    console.log(err);
                     return res.send({ success: 0, message: err.sqlMessage })
                 }
                 if (result.affectedRows === 0) return res.send({ success: 0, message: 'Error desconocido' });
@@ -106,7 +106,7 @@ app.post('/api/registrar-prestamo-libro', async (req, res) => {
                     VALUES (?, ?, ?, ?, 1)',
                     [usuarioId, libroId, informacionId, tipo],
                     (err, result) => {
-                        if (err) { console.log(err.sqlMessage); return res.send({ success: 0, message: err.sqlMessage }) }
+                        if (err) { console.log(err); return res.send({ success: 0, message: err.sqlMessage }) }
                         if (result.affectedRows === 0) return res.send({ success: 0, message: 'Error desconocido' });
                         res.send({ success: 1, message: `${libroNombre} prestado con éxito` });
                     }
