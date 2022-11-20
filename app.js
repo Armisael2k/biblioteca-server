@@ -34,7 +34,7 @@ app.post('/api/registrar-entrada', async (req, res) => {
         const { tipo, nombre, informacion } = req.body;
     
         const { id: usuarioId } = await utils.getUsuarioByName(con, nombre);
-        const { id: informacionId } = await utils.getInformacionByName(con, informacionNombre);
+        const { id: informacionId } = await utils.getInformacionByName(con, informacion);
 
         console.log('Registrar entrada', tipo, nombre, informacion);
         
@@ -100,17 +100,18 @@ app.post('/api/registrar-prestamo-libro', async (req, res) => {
                     return res.send({ success: 0, message: err.sqlMessage })
                 }
                 if (result.affectedRows === 0) return res.send({ success: 0, message: 'Error desconocido' });
+                res.send({ success: 1, message: `${libroNombre} prestado con éxito` });
                 
-                con.query(
-                    'INSERT INTO registros_libros (id_usuario, id_libro, id_informacion, tipo, movimiento)\
-                    VALUES (?, ?, ?, ?, 1)',
-                    [usuarioId, libroId, informacionId, tipo],
-                    (err, result) => {
-                        if (err) { console.log(err); return res.send({ success: 0, message: err.sqlMessage }) }
-                        if (result.affectedRows === 0) return res.send({ success: 0, message: 'Error desconocido' });
-                        res.send({ success: 1, message: `${libroNombre} prestado con éxito` });
-                    }
-                );
+                // con.query(
+                //     'INSERT INTO registros_libros (id_usuario, id_libro, id_informacion, tipo, movimiento)\
+                //     VALUES (?, ?, ?, ?, 1)',
+                //     [usuarioId, libroId, informacionId, tipo],
+                //     (err, result) => {
+                //         if (err) { console.log(err); return res.send({ success: 0, message: err.sqlMessage }) }
+                //         if (result.affectedRows === 0) return res.send({ success: 0, message: 'Error desconocido' });
+                //         res.send({ success: 1, message: `${libroNombre} prestado con éxito` });
+                //     }
+                // );
 
             }
         );
@@ -121,6 +122,28 @@ app.post('/api/registrar-prestamo-libro', async (req, res) => {
     }
 });
 
+app.post('/api/registrar-devolucion-libro', async (req, res) => {
+    const { libro } = req.body;
+    console.log('Devolución Libro', libro);
 
+    try {
+        const { id: libroId, nombre: libroNombre } = await utils.getLibroByCode(con, libro);
+
+        if (libroId === -1) return res.send({ success: 0, message: 'Libro no encontrado' });
+
+        con.query(
+            'DELETE FROM prestamos WHERE id_libro=? LIMIT 1',
+            [libroId],
+            (err, result) => {
+                if (err) { console.log(err.sqlMessage); return res.send({ success: 0, message: err.sqlMessage }) }
+                if (result.affectedRows === 0) return res.send({ success: 0, message: 'El libro no se encuentra prestado' });
+                res.send({ success: 1, message: `devolución del libro ${libroNombre} registrada` });
+            }
+        );
+    } catch (err) {
+        console.log(err);
+        res.send({ success: 0 });
+    }
+});
 
 server.listen(app.get('port'), () => console.log(`Server en el puerto ${app.get('port')}`));
